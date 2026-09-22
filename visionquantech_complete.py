@@ -1,728 +1,4 @@
-        self.add_text(content_section.content, "Description *", "description",
-                     "We provide innovative solutions that transform businesses.", 3)
-        
-        self.add_text(content_section.content, "Services (one per line)", "services",
-                     "Web Development\nMobile Apps\nCloud Solutions\nDigital Marketing", 4)
-        
-        # 5. CONTACT INFO
-        contact_section = ExpandableSection(parent, "📞 Contact Information")
-        contact_section.pack(fill='x', pady=2)
-        
-        self.add_field(contact_section.content, "Email *", "email", "info@company.com")
-        self.add_field(contact_section.content, "Phone *", "phone", "+1 (555) 123-4567")
-        self.add_field(contact_section.content, "Address", "address", "123 Business St, City")
-        
-        # 6. SOCIAL MEDIA
-        social_section = ExpandableSection(parent, "🌐 Social Media")
-        social_section.pack(fill='x', pady=2)
-        
-        self.add_field(social_section.content, "Facebook", "facebook", "https://facebook.com/page")
-        self.add_field(social_section.content, "Twitter", "twitter", "https://twitter.com/handle")
-        self.add_field(social_section.content, "LinkedIn", "linkedin", "https://linkedin.com/company")
-        self.add_field(social_section.content, "Instagram", "instagram", "https://instagram.com/profile")
-        
-        # 7. FEATURES
-        features_section = ExpandableSection(parent, "⚙️ Features & Pages")
-        features_section.pack(fill='x', pady=2)
-        
-        tk.Label(features_section.content, text="Enable Pages:", font=("Arial", 9, "bold"),
-                fg="#fff", bg="#1e2738").pack(fill='x', pady=(10, 5))
-        
-        self.enable_about = tk.BooleanVar(value=True)
-        self.enable_services = tk.BooleanVar(value=True)
-        self.enable_portfolio = tk.BooleanVar(value=True)
-        self.enable_blog = tk.BooleanVar(value=True)
-        self.enable_contact = tk.BooleanVar(value=True)
-        
-        for text, var in [
-            ("📄 About Page", self.enable_about),
-            ("💼 Services Page", self.enable_services),
-            ("🎨 Portfolio Page", self.enable_portfolio),
-            ("📝 Blog Page", self.enable_blog),
-            ("📞 Contact Page", self.enable_contact)
-        ]:
-            tk.Checkbutton(features_section.content, text=text, variable=var,
-                          bg="#1e2738", fg="#fff", selectcolor="#252540",
-                          font=("Arial", 9), activebackground="#1e2738",
-                          activeforeground="#fff").pack(anchor='w', pady=3)
-        
-        # 8. SEO
-        seo_section = ExpandableSection(parent, "🔍 SEO & Meta")
-        seo_section.pack(fill='x', pady=2)
-        
-        self.add_field(seo_section.content, "Meta Title", "meta_title", "Best Solutions Provider")
-        self.add_text(seo_section.content, "Meta Description", "meta_desc",
-                     "Leading provider of innovative business solutions.", 2)
-        self.add_field(seo_section.content, "Keywords", "keywords", "web development, business solutions")
-    
-    def add_field(self, parent, label, attr, default):
-        """Add input field"""
-        tk.Label(parent, text=label, font=("Arial", 8, "bold"),
-                fg="#fff", bg="#1e2738").pack(fill='x', pady=(8, 3))
-        e = tk.Entry(parent, font=("Arial", 9), bg="#252540",
-                    fg="white", insertbackground="white", bd=0)
-        e.pack(fill='x', ipady=8)
-        e.insert(0, default)
-        setattr(self, attr, e)
-    
-    def add_text(self, parent, label, attr, default, h):
-        """Add text area"""
-        tk.Label(parent, text=label, font=("Arial", 8, "bold"),
-                fg="#fff", bg="#1e2738").pack(fill='x', pady=(8, 3))
-        t = scrolledtext.ScrolledText(parent, height=h, font=("Arial", 9),
-                                     bg="#252540", fg="white", insertbackground="white", bd=0)
-        t.pack(fill='x')
-        t.insert(1.0, default)
-        setattr(self, attr, t)
-    
-    # ==================== AI FEATURES ====================
-    
-    def ai_generate(self, content_type):
-        """Generate content using AI"""
-        self.status.config(text="🤖 AI generating...")
-        self.root.update()
-        
-        try:
-            if content_type == "tagline":
-                prompt = f"Generate a professional tagline for {self.company_name.get()} in {self.industry.get()} industry. Keep it under 10 words."
-                result = self.ai.generate_text(prompt, max_tokens=50)
-                self.tagline.delete(0, tk.END)
-                self.tagline.insert(0, result)
-            
-            elif content_type == "description":
-                prompt = f"Write a professional 2-sentence company description for {self.company_name.get()} in {self.industry.get()} industry."
-                result = self.ai.generate_text(prompt, max_tokens=100)
-                self.description.delete(1.0, tk.END)
-                self.description.insert(1.0, result)
-            
-            self.status.config(text="✅ AI content generated!")
-            messagebox.showinfo("AI Generated", f"✨ Content generated!\n\n{result}")
-        
-        except Exception as e:
-            self.status.config(text="⚠️ AI error - using fallback")
-            messagebox.showwarning("AI Error", f"Using fallback generator\n\n{str(e)}")
-    
-    def ai_generate_colors(self):
-        """Generate color palette"""
-        try:
-            palette = self.ai.generate_color_palette(self.industry.get())
-            
-            self.color_previews['primary'].config(bg=palette['primary'])
-            self.color_previews['secondary'].config(bg=palette['secondary'])
-            self.color_previews['accent'].config(bg=palette['accent'])
-            
-            self.current_colors = palette
-            
-            messagebox.showinfo("AI Colors", f"✨ Palette generated for {self.industry.get()} industry!")
-            self.status.config(text="✅ Color palette generated")
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
-    
-    def edit_color(self, color_type):
-        """Edit individual color"""
-        color = colorchooser.askcolor(title=f"Choose {color_type.title()} Color")
-        if color[1]:
-            self.color_previews[color_type].config(bg=color[1])
-            if not hasattr(self, 'current_colors'):
-                self.current_colors = {}
-            self.current_colors[color_type] = color[1]
-    
-    def send_ai_message(self):
-        """Send message to AI chat"""
-        message = self.chat_input.get().strip()
-        if not message:
-            return
-        
-        self.chat_display.config(state='normal')
-        self.chat_display.insert(tk.END, f"\n🧑 You: {message}\n", 'user')
-        self.chat_display.tag_config('user', foreground='#00d4ff')
-        self.chat_input.delete(0, tk.END)
-        
-        self.status.config(text="🤖 AI thinking...")
-        self.root.update()
-        
-        try:
-            response = self.ai.generate_text(message, max_tokens=150)
-            self.chat_display.insert(tk.END, f"🤖 AI: {response}\n", 'ai')
-            self.chat_display.tag_config('ai', foreground='#10b981')
-            self.status.config(text="✅ AI responded")
-        except Exception as e:
-            self.chat_display.insert(tk.END, f"⚠️ AI: Error - {str(e)}\n", 'error')
-            self.chat_display.tag_config('error', foreground='#ef4444')
-            self.status.config(text="⚠️ AI error")
-        
-        self.chat_display.config(state='disabled')
-        self.chat_display.see(tk.END)
-    
-    # ==================== ASSETS ====================
-    
-    def upload_logo(self):
-        """Upload logo"""
-        try:
-            file = filedialog.askopenfilename(
-                title="Select Logo",
-                filetypes=[("Images", "*.png *.jpg *.jpeg *.gif")]
-            )
-            if not file:
-                return
-            
-            if PIL_AVAILABLE:
-                img = Image.open(file)
-                img.thumbnail((200, 100), Image.Resampling.LANCZOS)
-                
-                buf = io.BytesIO()
-                img.save(buf, format="PNG")
-                img_str = base64.b64encode(buf.getvalue()).decode()
-                self.logo_data = f"data:image/png;base64,{img_str}"
-                
-                photo = ImageTk.PhotoImage(img)
-                self.logo_preview.config(image=photo, text="")
-                self.logo_preview.image = photo
-            else:
-                with open(file, 'rb') as f:
-                    img_str = base64.b64encode(f.read()).decode()
-                    self.logo_data = f"data:image/png;base64,{img_str}"
-                self.logo_preview.config(text="✓ Uploaded")
-            
-            messagebox.showinfo("Success", "✅ Logo uploaded!")
-            self.status.config(text="✅ Logo uploaded")
-        except Exception as e:
-            messagebox.showerror("Error", f"Upload failed: {str(e)}")
-    
-    # ==================== GENERATION ====================
-    
-    def generate(self):
-        """Generate website"""
-        try:
-            data = self.get_data()
-            
-            if not data['company_name'] or not data['email']:
-                messagebox.showwarning("Required", "Enter Company Name and Email")
-                return
-            
-            self.status.config(text="⏳ Generating website...")
-            self.root.update()
-            
-            # Generate pages
-            self.pages = self.build_website(data)
-            self.current_project = data
-            
-            # Update preview
-            self.preview.delete(1.0, tk.END)
-            self.preview.insert(1.0, f"✅ WEBSITE GENERATED!\n\n")
-            self.preview.insert(tk.END, f"📊 Summary:\n")
-            self.preview.insert(tk.END, f"{'='*40}\n\n")
-            self.preview.insert(tk.END, f"Pages: {len(self.pages)}\n")
-            for p in self.pages.keys():
-                self.preview.insert(tk.END, f"  ✓ {p}\n")
-            self.preview.insert(tk.END, f"\nCompany: {data['company_name']}\n")
-            self.preview.insert(tk.END, f"Industry: {data['industry']}\n")
-            self.preview.insert(tk.END, f"Logo: {'✓ Yes' if data['logo'] else '✗ No'}\n")
-            self.preview.insert(tk.END, f"Colors: {len(data['colors'])} set\n\n")
-            self.preview.insert(tk.END, "💡 Next: Edit → Preview → Export → Deploy")
-            
-            self.status.config(text=f"✅ Generated {len(self.pages)} pages!")
-            messagebox.showinfo("Success", f"🎉 Website Ready!\n\n{len(self.pages)} professional pages\nAI-optimized content")
-            
-        except Exception as e:
-            messagebox.showerror("Error", f"Generation failed:\n{str(e)}")
-            self.status.config(text="❌ Generation failed")
-    
-    def get_data(self):
-        """Get all form data"""
-        if not hasattr(self, 'current_colors'):
-            self.current_colors = {"primary": "#0ea5e9", "secondary": "#0284c7", "accent": "#38bdf8"}
-        
-        services = [s.strip() for s in self.services.get(1.0, tk.END).strip().split('\n') if s.strip()]
-        
-        return {
-            'company_name': self.company_name.get(),
-            'tagline': self.tagline.get(),
-            'industry': self.industry.get(),
-            'description': self.description.get(1.0, tk.END).strip(),
-            'services': services,
-            'email': self.email.get(),
-            'phone': self.phone.get(),
-            'address': self.address.get(),
-            'social': {
-                'facebook': self.facebook.get(),
-                'twitter': self.twitter.get(),
-                'linkedin': self.linkedin.get(),
-                'instagram': self.instagram.get()
-            },
-            'seo': {
-                'title': self.meta_title.get(),
-                'description': self.meta_desc.get(1.0, tk.END).strip(),
-                'keywords': self.keywords.get()
-            },
-            'features': {
-                'about': self.enable_about.get(),
-                'services': self.enable_services.get(),
-                'portfolio': self.enable_portfolio.get(),
-                'blog': self.enable_blog.get(),
-                'contact': self.enable_contact.get()
-            },
-            'logo': self.logo_data,
-            'colors': self.current_colors
-        }
-    
-    def build_website(self, d):
-        """Build complete website"""
-        
-        # CSS
-        css = f"""* {{margin:0;padding:0;box-sizing:border-box}}
-body {{font-family:'Inter',sans-serif;line-height:1.6;color:#1e293b}}
-:root {{--p:{d['colors']['primary']};--s:{d['colors']['secondary']};--a:{d['colors']['accent']}}}
-.navbar {{background:rgba(255,255,255,0.98);backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,0.08);position:sticky;top:0;z-index:1000}}
-.nav-container {{max-width:1400px;margin:0 auto;padding:1.2rem 3rem;display:flex;justify-content:space-between;align-items:center}}
-.logo {{font-size:2rem;font-weight:800;background:linear-gradient(135deg,var(--p),var(--a));-webkit-background-clip:text;-webkit-text-fill-color:transparent}}
-.nav-menu {{display:flex;gap:3rem;list-style:none}}
-.nav-menu a {{color:#1e293b;text-decoration:none;font-weight:600;transition:color 0.3s}}
-.nav-menu a:hover {{color:var(--p)}}
-.hero {{min-height:90vh;background:linear-gradient(135deg,#f8fafc 0%,white 100%);display:flex;align-items:center;justify-content:center;padding:2rem;position:relative}}
-.hero::before {{content:'';position:absolute;width:800px;height:800px;background:radial-gradient(circle,var(--p)20,transparent 70%);border-radius:50%;top:-400px;right:-200px;animation:pulse 6s ease-in-out infinite}}
-@keyframes pulse {{0%,100%{{transform:scale(1);opacity:0.6}}50%{{transform:scale(1.15);opacity:0.8}}}}
-.hero-content {{max-width:900px;text-align:center;z-index:1}}
-.hero h1 {{font-size:clamp(2.5rem,6vw,4.5rem);font-weight:900;margin-bottom:1.5rem;background:linear-gradient(135deg,var(--p),var(--a));-webkit-background-clip:text;-webkit-text-fill-color:transparent}}
-.cta {{display:inline-block;padding:1.3rem 3.5rem;background:linear-gradient(135deg,var(--p),var(--a));color:white;text-decoration:none;border-radius:50px;font-size:1.15rem;font-weight:700;box-shadow:0 15px 40px rgba(0,0,0,0.15);transition:all 0.4s}}
-.cta:hover {{transform:translateY(-5px);box-shadow:0 20px 50px rgba(0,0,0,0.25)}}
-.section {{padding:6rem 2rem;max-width:1400px;margin:0 auto}}
-.section-title {{font-size:clamp(2rem,4vw,3rem);font-weight:800;text-align:center;margin-bottom:4rem;background:linear-gradient(135deg,var(--p),var(--s));-webkit-background-clip:text;-webkit-text-fill-color:transparent}}
-.grid {{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:2.5rem}}
-.card {{background:white;padding:3rem;border-radius:25px;box-shadow:0 15px 50px rgba(0,0,0,0.08);transition:all 0.4s;text-align:center}}
-.card:hover {{transform:translateY(-10px);box-shadow:0 25px 60px rgba(0,0,0,0.15)}}
-.footer {{background:#0f172a;color:white;padding:4rem 2rem 2rem}}
-@media(max-width:768px){{.nav-menu{{flex-direction:column;gap:1rem}}.grid{{grid-template-columns:1fr}}}}"""
-        
-        # Navigation
-        logo_html = f'<img src="{d["logo"]}" alt="Logo" style="height:50px">' if d['logo'] else f'<div class="logo">{d["company_name"]}</div>'
-        
-        nav = f"""<nav class="navbar">
-<div class="nav-container">
-{logo_html}
-<ul class="nav-menu">
-<li><a href="index.html">Home</a></li>
-{f'<li><a href="about.html">About</a></li>' if d['features']['about'] else ''}
-{f'<li><a href="services.html">Services</a></li>' if d['features']['services'] else ''}
-{f'<li><a href="portfolio.html">Portfolio</a></li>' if d['features']['portfolio'] else ''}
-{f'<li><a href="blog.html">Blog</a></li>' if d['features']['blog'] else ''}
-{f'<li><a href="contact.html">Contact</a></li>' if d['features']['contact'] else ''}
-</ul>
-</div>
-</nav>"""
-        
-        # Footer
-        footer = f"""<footer class="footer">
-<div style="max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:3rem">
-<div><h3>{d['company_name']}</h3><p>{d['description'][:100]}...</p></div>
-<div><h4>Contact</h4><p>📧 {d['email']}</p><p>📱 {d['phone']}</p><p>📍 {d['address']}</p></div>
-<div><h4>Follow Us</h4>
-{f'<a href="{d["social"]["facebook"]}" style="color:white;margin:0 10px">Facebook</a>' if d['social']['facebook'] else ''}
-{f'<a href="{d["social"]["twitter"]}" style="color:white;margin:0 10px">Twitter</a>' if d['social']['twitter'] else ''}
-{f'<a href="{d["social"]["linkedin"]}" style="color:white;margin:0 10px">LinkedIn</a>' if d['social']['linkedin'] else ''}
-</div>
-</div>
-<div style="text-align:center;margin-top:2rem;padding-top:2rem;border-top:1px solid #334155">
-<p>&copy; {datetime.now().year} {d['company_name']}. Built with VisionQuantech OS</p>
-</div>
-</footer>"""
-        
-        # Pages
-        pages = {}
-        
-        # INDEX
-        services_cards = '\n'.join([f'<div class="card"><h3>💼</h3><h3>{s}</h3><p>Professional {s.lower()} services</p></div>' for s in d['services'][:6]])
-        
-        pages['index.html'] = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{d['seo']['title'] or d['company_name']}</title>
-<meta name="description" content="{d['seo']['description'] or d['description']}">
-<meta name="keywords" content="{d['seo']['keywords']}">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<style>{css}</style>
-</head>
-<body>
-{nav}
-<section class="hero">
-<div class="hero-content">
-<h1>{d['company_name']}</h1>
-<p style="font-size:1.3rem;margin-bottom:2rem">{d['tagline']}</p>
-<p style="font-size:1.1rem;margin-bottom:2rem">{d['description']}</p>
-<a href="contact.html" class="cta">Get Started →</a>
-</div>
-</section>
-<section class="section">
-<h2 class="section-title">Our Services</h2>
-<div class="grid">{services_cards}</div>
-</section>
-{footer}
-</body>
-</html>"""
-        
-        # ABOUT
-        if d['features']['about']:
-            pages['about.html'] = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>About - {d['company_name']}</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<style>{css}</style>
-</head>
-<body>
-{nav}
-<section class="hero" style="min-height:60vh">
-<div class="hero-content">
-<h1>About {d['company_name']}</h1>
-<p style="font-size:1.2rem">{d['description']}</p>
-</div>
-</section>
-<section class="section">
-<h2 class="section-title">Our Team</h2>
-<div class="grid">
-<div class="card"><div style="font-size:4rem">👨‍💼</div><h3>John Smith</h3><p>CEO & Founder</p></div>
-<div class="card"><div style="font-size:4rem">👩‍💻</div><h3>Sarah Johnson</h3><p>CTO</p></div>
-<div class="card"><div style="font-size:4rem">👨‍🎨</div><h3>Mike Davis</h3><p>Creative Director</p></div>
-</div>
-</section>
-{footer}
-</body>
-</html>"""
-        
-        # CONTACT
-        if d['features']['contact']:
-            pages['contact.html'] = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Contact - {d['company_name']}</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<style>{css}
-.form-group{{margin-bottom:2rem}}
-.form-group label{{display:block;margin-bottom:0.8rem;font-weight:700}}
-.form-group input,.form-group textarea{{width:100%;padding:1.2rem;border:2px solid #e2e8f0;border-radius:15px;font-size:1.05rem;font-family:inherit}}
-.form-group input:focus,.form-group textarea:focus{{outline:none;border-color:var(--p);box-shadow:0 0 0 4px var(--p)15}}
-.submit-btn{{width:100%;padding:1.4rem;background:linear-gradient(135deg,var(--p),var(--a));color:white;border:none;border-radius:15px;font-size:1.2rem;font-weight:700;cursor:pointer}}
-</style>
-</head>
-<body>
-{nav}
-<section class="hero" style="min-height:50vh">
-<div class="hero-content">
-<h1>Get In Touch</h1>
-<p style="font-size:1.2rem">We'd love to hear from you</p>
-</div>
-</section>
-<section style="padding:6rem 2rem;background:linear-gradient(135deg,var(--p)08,var(--a)15)">
-<div style="max-width:700px;margin:0 auto;background:white;padding:4rem;border-radius:30px;box-shadow:0 25px 70px rgba(0,0,0,0.12)">
-<h2 style="text-align:center;margin-bottom:2rem">Send Message</h2>
-<form action="{FORMSPREE_ENDPOINT}" method="POST">
-<div class="form-group">
-<label>Name *</label>
-<input type="text" name="name" required>
-</div>
-<div class="form-group">
-<label>Email *</label>
-<input type="email" name="email" required>
-</div>
-<div class="form-group">
-<label>Message *</label>
-<textarea name="message" rows="6" required></textarea>
-</div>
-<button type="submit" class="submit-btn">Send →</button>
-</form>
-<div style="margin-top:3rem;padding-top:2rem;border-top:2px solid #e2e8f0">
-<h3>Contact Info</h3>
-<p>📧 {d['email']}</p>
-<p>📱 {d['phone']}</p>
-<p>📍 {d['address']}</p>
-</div>
-</div>
-</section>
-{footer}
-</body>
-</html>"""
-        
-        return pages
-    
-    # ==================== ACTIONS ====================
-    
-    def edit(self):
-        """Edit content"""
-        if not hasattr(self, 'pages'):
-            messagebox.showwarning("Warning", "Generate website first!")
-            return
-        
-        editor = tk.Toplevel(self.root)
-        editor.title("Content Editor")
-        editor.geometry("1000x750")
-        editor.configure(bg="#1a1a2e")
-        
-        tk.Label(editor, text="📝 Editor", font=("Arial", 20, "bold"),
-                fg="#00d4ff", bg="#1a1a2e").pack(pady=20)
-        
-        notebook = ttk.Notebook(editor)
-        notebook.pack(fill='both', expand=True, padx=20, pady=(0, 20))
-        
-        self.editors = {}
-        for fn, content in self.pages.items():
-            frame = tk.Frame(notebook)
-            notebook.add(frame, text=fn)
-            
-            text = scrolledtext.ScrolledText(frame, font=("Consolas", 10),
-                                            bg="#0f1419", fg="#fff", wrap=tk.WORD)
-            text.pack(fill='both', expand=True, padx=10, pady=10)
-            text.insert(1.0, content)
-            self.editors[fn] = text
-        
-        btn_fr = tk.Frame(editor, bg="#1a1a2e")
-        btn_fr.pack(fill='x', padx=20, pady=(0, 20))
-        
-        def save():
-            for fn, widget in self.editors.items():
-                self.pages[fn] = widget.get(1.0, tk.END)
-            messagebox.showinfo("Saved", "✅ Saved!")
-            self.status.config(text="✅ Content updated")
-        
-        tk.Button(btn_fr, text="💾 Save", command=save, bg="#10b981",
-                 fg="white", font=("Arial", 11, "bold"), padx=30, pady=10, bd=0).pack(side='left', padx=5)
-        tk.Button(btn_fr, text="❌ Close", command=editor.destroy, bg="#64748b",
-                 fg="white", font=("Arial", 11, "bold"), padx=30, pady=10, bd=0).pack(side='right')
-    
-    def export(self):
-        """Export ZIP"""
-        if not hasattr(self, 'pages'):
-            messagebox.showwarning("Warning", "Generate first!")
-            return
-        
-        path = filedialog.asksaveasfilename(
-            defaultextension=".zip",
-            filetypes=[("ZIP", "*.zip")],
-            initialfile=f"{self.company_name.get().replace(' ', '_')}_website.zip"
-        )
-        
-        if path:
-            try:
-                with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as z:
-                    for fn, content in self.pages.items():
-                        z.writestr(fn, content)
-                    z.writestr("README.txt", f"VisionQuantech OS Website\nGenerated: {datetime.now()}")
-                
-                messagebox.showinfo("Success", f"✅ Exported!\n\n{path}")
-                self.status.config(text=f"✅ Exported")
-            except Exception as e:
-                messagebox.showerror("Error", str(e))
-    
-    def preview_web(self):
-        """Preview in browser"""
-        if not hasattr(self, 'pages'):
-            messagebox.showwarning("Warning", "Generate first!")
-            return
-        
-        temp = Path("temp_preview")
-        temp.mkdir(exist_ok=True)
-        
-        for fn, content in self.pages.items():
-            (temp / fn).write_text(content, encoding='utf-8')
-        
-        def run():
-            os.chdir(temp)
-            with socketserver.TCPServer(("", 8000), http.server.SimpleHTTPRequestHandler) as httpd:
-                httpd.serve_forever()
-        
-        threading.Thread(target=run, daemon=True).start()
-        webbrowser.open('http://localhost:8000')
-        self.status.config(text="✅ Server: localhost:8000")
-        messagebox.showinfo("Server", "🌐 Running at http://localhost:8000")
-    
-    def deploy(self):
-        """Deploy options"""
-        if not hasattr(self, 'pages'):
-            messagebox.showwarning("Warning", "Generate first!")
-            return
-        
-        deploy = tk.Toplevel(self.root)
-        deploy.title("Deploy Online")
-        deploy.geometry("700x650")
-        deploy.configure(bg="#1a1a2e")
-        
-        tk.Label(deploy, text="☁️ Deploy", font=("Arial", 24, "bold"),
-                fg="#00d4ff", bg="#1a1a2e").pack(pady=30)
-        
-        frame = tk.Frame(deploy, bg="#252540")
-        frame.pack(fill='both', expand=True, padx=40, pady=(0, 20))
-        
-        options = [
-            ("🌐 Netlify", "Drag & drop", "https://app.netlify.com/drop"),
-            ("⚡ Vercel", "Fast deploy", "https://vercel.com/new"),
-            ("🐙 GitHub Pages", "Free hosting", "https://pages.github.com"),
-            ("🔥 Firebase", "Google hosting", "https://firebase.google.com/docs/hosting")
-        ]
-        
-        for title, desc, url in options:
-            card = tk.Frame(frame, bg="#1a1a2e")
-            card.pack(fill='x', padx=20, pady=10)
-            
-            tk.Label(card, text=title, font=("Arial", 12, "bold"),
-                    fg="#00d4ff", bg="#1a1a2e").pack(fill='x', padx=15, pady=(10, 5))
-            tk.Label(card, text=desc, font=("Arial", 10),
-                    fg="#94a3b8", bg="#1a1a2e").pack(fill='x', padx=15)
-            tk.Button(card, text="Open", command=lambda u=url: webbrowser.open(u),
-                     bg="#8b5cf6", fg="white", font=("Arial", 9, "bold"),
-                     padx=20, pady=8, bd=0).pack(anchor='w', padx=15, pady=(5, 10))
-        
-        def quick_export():
-            desktop = Path.home() / "Desktop"
-            fn = f"{self.company_name.get().replace(' ', '_')}_deploy.zip"
-            path = desktop / fn
-            
-            try:
-                with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as z:
-                    for f, c in self.pages.items():
-                        z.writestr(f, c)
-                
-                messagebox.showinfo("Exported", f"✅ Desktop!\n\n{fn}")
-                self.status.config(text="✅ Ready for deployment")
-            except Exception as e:
-                messagebox.showerror("Error", str(e))
-        
-        tk.Button(deploy, text="📦 Export to Desktop", command=quick_export,
-                 bg="#10b981", fg="white", font=("Arial", 12, "bold"),
-                 padx=30, pady=12, bd=0).pack(pady=20)
-    
-    # ==================== PROJECT MANAGEMENT ====================
-    
-    def save_project(self):
-        """Save project"""
-        if not hasattr(self, 'pages'):
-            messagebox.showwarning("Warning", "Generate first!")
-            return
-        
-        try:
-            projects = []
-            if os.path.exists(self.projects_file):
-                with open(self.projects_file, 'r') as f:
-                    projects = json.load(f)
-            
-            projects.append({
-                'data': self.current_project,
-                'pages': self.pages,
-                'saved': datetime.now().isoformat()
-            })
-            
-            with open(self.projects_file, 'w') as f:
-                json.dump(projects, f)
-            
-            messagebox.showinfo("Saved", "✅ Project saved!")
-            self.status.config(text="✅ Project saved")
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
-    
-    def load_project(self):
-        """Load project"""
-        if not os.path.exists(self.projects_file):
-            messagebox.showinfo("No Projects", "No saved projects")
-            return
-        
-        try:
-            with open(self.projects_file, 'r') as f:
-                projects = json.load(f)
-            
-            if not projects:
-                messagebox.showinfo("No Projects", "No saved projects")
-                return
-            
-            project = projects[-1]
-            data = project['data']
-            
-            self.company_name.delete(0, tk.END)
-            self.company_name.insert(0, data['company_name'])
-            self.tagline.delete(0, tk.END)
-            self.tagline.insert(0, data['tagline'])
-            self.description.delete(1.0, tk.END)
-            self.description.insert(1.0, data['description'])
-            self.email.delete(0, tk.END)
-            self.email.insert(0, data['email'])
-            
-            self.pages = project['pages']
-            self.current_project = data
-            
-            messagebox.showinfo("Loaded", "✅ Project loaded!")
-            self.status.config(text="✅ Project loaded")
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
-    
-    def start_autosave(self):
-        """Start auto-save timer"""
-        def autosave():
-            if hasattr(self, 'pages'):
-                try:
-                    with open('autosave.json', 'w') as f:
-                        json.dump({
-                            'data': self.current_project,
-                            'pages': self.pages,
-                            'timestamp': datetime.now().isoformat()
-                        }, f)
-                    print("✅ Auto-saved")
-                except:
-                    pass
-            
-            self.auto_save_job = self.root.after(30000, autosave)  # Every 30 seconds
-        
-        autosave()
-
-# ==================== RUN APPLICATION ====================
-
-if __name__ == "__main__":
-    print("""
-    ╔═══════════════════════════════════════════════════════╗
-    ║                                                       ║
-    ║        🌐 VisionQuantech OS v4.0 Ultimate            ║
-    ║                                                       ║
-    ║     AI-Powered Website Builder - World Class         ║
-    ║                                                       ║
-    ║  Features:                                           ║
-    ║  ✅ 15 Premium Templates                             ║
-    ║  ✅ AI Content Generator (Mistral)                   ║
-    ║  ✅ Expandable Accordion UI                          ║
-    ║  ✅ In-App Support Tickets                           ║
-    ║  ✅ Logo Upload & Assets                             ║
-    ║  ✅ AI Chat Assistant                                ║
-    ║  ✅ Auto-Save (30s)                                  ║
-    ║  ✅ Live Preview                                     ║
-    ║  ✅ Export & Deploy                                  ║
-    ║  ✅ 6 Pages per Website                              ║
-    ║  ✅ SEO Optimized                                    ║
-    ║                                                       ║
-    ║  License: Demo Mode (any 8+ char key)               ║
-    ║  Support: support@visionquantech.com                 ║
-    ║                                                       ║
-    ╚═══════════════════════════════════════════════════════╝
-    
-    Starting application...
-    """)
-    
-    root = tk.Tk()
-    app = VisionQuantechOS(root)
-    root.mainloop()')
-        
-        webbrowser.open('file://' + str((temp / 'index.html').absolute()))
-        self.status.config(text="✅ Opened in browser")
-    
-    def serve(self):
-        """Local server"""
-        if not hasattr(self, 'pages'):
-            messagebox.showwarning("Warning", "Generate first!")
-            return
-        
-        temp = Path("temp_preview")
-        temp.mkdir(exist_ok=True)
-        
-        for fn, content in self.pages.items():
-            (temp / fn).write_text(content, encoding='utf-8#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 VisionQuantech OS - Ultimate AI Website Builder
 World-Class | Compete with Wix, Webflow, Odoo
@@ -754,7 +30,7 @@ except ImportError:
 
 # ==================== CONFIGURATION ====================
 
-MISTRAL_API_KEY = "1344486629b5bcc6e31ffbd0ed9a5498"
+MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY", "")
 APIFREE_URL = "https://api.apifreellm.com/v1/chat/completions"
 FORMSPREE_ENDPOINT = "https://formspree.io/f/mdkyoyna"
 
@@ -1320,4 +596,706 @@ class VisionQuantechOS:
                  padx=20, pady=10, cursor="hand2", bd=0).pack(pady=10)
         
         self.add_text(content_section.content, "Description *", "description",
-                     
+                     "We provide innovative solutions that transform businesses.", 3)
+        
+        self.add_text(content_section.content, "Services (one per line)", "services",
+                     "Web Development\nMobile Apps\nCloud Solutions\nDigital Marketing", 4)
+        
+        # 5. CONTACT INFO
+        contact_section = ExpandableSection(parent, "📞 Contact Information")
+        contact_section.pack(fill='x', pady=2)
+        
+        self.add_field(contact_section.content, "Email *", "email", "info@company.com")
+        self.add_field(contact_section.content, "Phone *", "phone", "+1 (555) 123-4567")
+        self.add_field(contact_section.content, "Address", "address", "123 Business St, City")
+        
+        # 6. SOCIAL MEDIA
+        social_section = ExpandableSection(parent, "🌐 Social Media")
+        social_section.pack(fill='x', pady=2)
+        
+        self.add_field(social_section.content, "Facebook", "facebook", "https://facebook.com/page")
+        self.add_field(social_section.content, "Twitter", "twitter", "https://twitter.com/handle")
+        self.add_field(social_section.content, "LinkedIn", "linkedin", "https://linkedin.com/company")
+        self.add_field(social_section.content, "Instagram", "instagram", "https://instagram.com/profile")
+        
+        # 7. FEATURES
+        features_section = ExpandableSection(parent, "⚙️ Features & Pages")
+        features_section.pack(fill='x', pady=2)
+        
+        tk.Label(features_section.content, text="Enable Pages:", font=("Arial", 9, "bold"),
+                fg="#fff", bg="#1e2738").pack(fill='x', pady=(10, 5))
+        
+        self.enable_about = tk.BooleanVar(value=True)
+        self.enable_services = tk.BooleanVar(value=True)
+        self.enable_portfolio = tk.BooleanVar(value=True)
+        self.enable_blog = tk.BooleanVar(value=True)
+        self.enable_contact = tk.BooleanVar(value=True)
+        
+        for text, var in [
+            ("📄 About Page", self.enable_about),
+            ("💼 Services Page", self.enable_services),
+            ("🎨 Portfolio Page", self.enable_portfolio),
+            ("📝 Blog Page", self.enable_blog),
+            ("📞 Contact Page", self.enable_contact)
+        ]:
+            tk.Checkbutton(features_section.content, text=text, variable=var,
+                          bg="#1e2738", fg="#fff", selectcolor="#252540",
+                          font=("Arial", 9), activebackground="#1e2738",
+                          activeforeground="#fff").pack(anchor='w', pady=3)
+        
+        # 8. SEO
+        seo_section = ExpandableSection(parent, "🔍 SEO & Meta")
+        seo_section.pack(fill='x', pady=2)
+        
+        self.add_field(seo_section.content, "Meta Title", "meta_title", "Best Solutions Provider")
+        self.add_text(seo_section.content, "Meta Description", "meta_desc",
+                     "Leading provider of innovative business solutions.", 2)
+        self.add_field(seo_section.content, "Keywords", "keywords", "web development, business solutions")
+    
+
+    def add_field(self, parent, label, attr, default):
+        """Add input field"""
+        tk.Label(parent, text=label, font=("Arial", 8, "bold"),
+                fg="#fff", bg="#1e2738").pack(fill='x', pady=(8, 3))
+        e = tk.Entry(parent, font=("Arial", 9), bg="#252540",
+                    fg="white", insertbackground="white", bd=0)
+        e.pack(fill='x', ipady=8)
+        e.insert(0, default)
+        setattr(self, attr, e)
+
+    def add_text(self, parent, label, attr, default, h):
+        """Add text area"""
+        tk.Label(parent, text=label, font=("Arial", 8, "bold"),
+                fg="#fff", bg="#1e2738").pack(fill='x', pady=(8, 3))
+        t = scrolledtext.ScrolledText(parent, height=h, font=("Arial", 9),
+                                     bg="#252540", fg="white", insertbackground="white", bd=0)
+        t.pack(fill='x')
+        t.insert(1.0, default)
+        setattr(self, attr, t)
+    
+    # ==================== AI FEATURES ====================
+
+    def ai_generate(self, content_type):
+        """Generate content using AI"""
+        self.status.config(text="🤖 AI generating...")
+        self.root.update()
+        
+        try:
+            if content_type == "tagline":
+                prompt = f"Generate a professional tagline for {self.company_name.get()} in {self.industry.get()} industry. Keep it under 10 words."
+                result = self.ai.generate_text(prompt, max_tokens=50)
+                self.tagline.delete(0, tk.END)
+                self.tagline.insert(0, result)
+            
+            elif content_type == "description":
+                prompt = f"Write a professional 2-sentence company description for {self.company_name.get()} in {self.industry.get()} industry."
+                result = self.ai.generate_text(prompt, max_tokens=100)
+                self.description.delete(1.0, tk.END)
+                self.description.insert(1.0, result)
+            
+            self.status.config(text="✅ AI content generated!")
+            messagebox.showinfo("AI Generated", f"✨ Content generated!\n\n{result}")
+        
+        except Exception as e:
+            self.status.config(text="⚠️ AI error - using fallback")
+            messagebox.showwarning("AI Error", f"Using fallback generator\n\n{str(e)}")
+
+    def ai_generate_colors(self):
+        """Generate color palette"""
+        try:
+            palette = self.ai.generate_color_palette(self.industry.get())
+            
+            self.color_previews['primary'].config(bg=palette['primary'])
+            self.color_previews['secondary'].config(bg=palette['secondary'])
+            self.color_previews['accent'].config(bg=palette['accent'])
+            
+            self.current_colors = palette
+            
+            messagebox.showinfo("AI Colors", f"✨ Palette generated for {self.industry.get()} industry!")
+            self.status.config(text="✅ Color palette generated")
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+
+    def edit_color(self, color_type):
+        """Edit individual color"""
+        color = colorchooser.askcolor(title=f"Choose {color_type.title()} Color")
+        if color[1]:
+            self.color_previews[color_type].config(bg=color[1])
+            if not hasattr(self, 'current_colors'):
+                self.current_colors = {}
+            self.current_colors[color_type] = color[1]
+
+    def send_ai_message(self):
+        """Send message to AI chat"""
+        message = self.chat_input.get().strip()
+        if not message:
+            return
+        
+        self.chat_display.config(state='normal')
+        self.chat_display.insert(tk.END, f"\n🧑 You: {message}\n", 'user')
+        self.chat_display.tag_config('user', foreground='#00d4ff')
+        self.chat_input.delete(0, tk.END)
+        
+        self.status.config(text="🤖 AI thinking...")
+        self.root.update()
+        
+        try:
+            response = self.ai.generate_text(message, max_tokens=150)
+            self.chat_display.insert(tk.END, f"🤖 AI: {response}\n", 'ai')
+            self.chat_display.tag_config('ai', foreground='#10b981')
+            self.status.config(text="✅ AI responded")
+        except Exception as e:
+            self.chat_display.insert(tk.END, f"⚠️ AI: Error - {str(e)}\n", 'error')
+            self.chat_display.tag_config('error', foreground='#ef4444')
+            self.status.config(text="⚠️ AI error")
+        
+        self.chat_display.config(state='disabled')
+        self.chat_display.see(tk.END)
+    
+    # ==================== ASSETS ====================
+
+    def upload_logo(self):
+        """Upload logo"""
+        try:
+            file = filedialog.askopenfilename(
+                title="Select Logo",
+                filetypes=[("Images", "*.png *.jpg *.jpeg *.gif")]
+            )
+            if not file:
+                return
+            
+            if PIL_AVAILABLE:
+                img = Image.open(file)
+                img.thumbnail((200, 100), Image.Resampling.LANCZOS)
+                
+                buf = io.BytesIO()
+                img.save(buf, format="PNG")
+                img_str = base64.b64encode(buf.getvalue()).decode()
+                self.logo_data = f"data:image/png;base64,{img_str}"
+                
+                photo = ImageTk.PhotoImage(img)
+                self.logo_preview.config(image=photo, text="")
+                self.logo_preview.image = photo
+            else:
+                with open(file, 'rb') as f:
+                    img_str = base64.b64encode(f.read()).decode()
+                    self.logo_data = f"data:image/png;base64,{img_str}"
+                self.logo_preview.config(text="✓ Uploaded")
+            
+            messagebox.showinfo("Success", "✅ Logo uploaded!")
+            self.status.config(text="✅ Logo uploaded")
+        except Exception as e:
+            messagebox.showerror("Error", f"Upload failed: {str(e)}")
+    
+    # ==================== GENERATION ====================
+
+    def start_autosave(self):
+        """Start auto-save timer"""
+        def autosave():
+            if hasattr(self, 'pages'):
+                try:
+                    with open('autosave.json', 'w') as f:
+                        json.dump({
+                            'data': self.current_project,
+                            'pages': self.pages,
+                            'timestamp': datetime.now().isoformat()
+                        }, f)
+                    print("✅ Auto-saved")
+                except:
+                    pass
+            
+            self.auto_save_job = self.root.after(30000, autosave)  # Every 30 seconds
+        
+        autosave()
+
+
+    def generate(self):
+        """Generate website"""
+        try:
+            data = self.get_data()
+            
+            if not data['company_name'] or not data['email']:
+                messagebox.showwarning("Required", "Enter Company Name and Email")
+                return
+            
+            self.status.config(text="⏳ Generating website...")
+            self.root.update()
+            
+            # Generate pages
+            self.pages = self.build_website(data)
+            self.current_project = data
+            
+            # Update preview
+            self.preview.delete(1.0, tk.END)
+            self.preview.insert(1.0, f"✅ WEBSITE GENERATED!\n\n")
+            self.preview.insert(tk.END, f"📊 Summary:\n")
+            self.preview.insert(tk.END, f"{'='*40}\n\n")
+            self.preview.insert(tk.END, f"Pages: {len(self.pages)}\n")
+            for p in self.pages.keys():
+                self.preview.insert(tk.END, f"  ✓ {p}\n")
+            self.preview.insert(tk.END, f"\nCompany: {data['company_name']}\n")
+            self.preview.insert(tk.END, f"Industry: {data['industry']}\n")
+            self.preview.insert(tk.END, f"Logo: {'✓ Yes' if data['logo'] else '✗ No'}\n")
+            self.preview.insert(tk.END, f"Colors: {len(data['colors'])} set\n\n")
+            self.preview.insert(tk.END, "💡 Next: Edit → Preview → Export → Deploy")
+            
+            self.status.config(text=f"✅ Generated {len(self.pages)} pages!")
+            messagebox.showinfo("Success", f"🎉 Website Ready!\n\n{len(self.pages)} professional pages\nAI-optimized content")
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Generation failed:\n{str(e)}")
+            self.status.config(text="❌ Generation failed")
+    
+    def get_data(self):
+        """Get all form data"""
+        if not hasattr(self, 'current_colors'):
+            self.current_colors = {"primary": "#0ea5e9", "secondary": "#0284c7", "accent": "#38bdf8"}
+        
+        services = [s.strip() for s in self.services.get(1.0, tk.END).strip().split('\n') if s.strip()]
+        
+        return {
+            'company_name': self.company_name.get(),
+            'tagline': self.tagline.get(),
+            'industry': self.industry.get(),
+            'description': self.description.get(1.0, tk.END).strip(),
+            'services': services,
+            'email': self.email.get(),
+            'phone': self.phone.get(),
+            'address': self.address.get(),
+            'social': {
+                'facebook': self.facebook.get(),
+                'twitter': self.twitter.get(),
+                'linkedin': self.linkedin.get(),
+                'instagram': self.instagram.get()
+            },
+            'seo': {
+                'title': self.meta_title.get(),
+                'description': self.meta_desc.get(1.0, tk.END).strip(),
+                'keywords': self.keywords.get()
+            },
+            'features': {
+                'about': self.enable_about.get(),
+                'services': self.enable_services.get(),
+                'portfolio': self.enable_portfolio.get(),
+                'blog': self.enable_blog.get(),
+                'contact': self.enable_contact.get()
+            },
+            'logo': self.logo_data,
+            'colors': self.current_colors
+        }
+    
+    def build_website(self, d):
+        """Build complete website"""
+        
+        # CSS
+        css = f"""* {{margin:0;padding:0;box-sizing:border-box}}
+body {{font-family:'Inter',sans-serif;line-height:1.6;color:#1e293b}}
+:root {{--p:{d['colors']['primary']};--s:{d['colors']['secondary']};--a:{d['colors']['accent']}}}
+.navbar {{background:rgba(255,255,255,0.98);backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,0.08);position:sticky;top:0;z-index:1000}}
+.nav-container {{max-width:1400px;margin:0 auto;padding:1.2rem 3rem;display:flex;justify-content:space-between;align-items:center}}
+.logo {{font-size:2rem;font-weight:800;background:linear-gradient(135deg,var(--p),var(--a));-webkit-background-clip:text;-webkit-text-fill-color:transparent}}
+.nav-menu {{display:flex;gap:3rem;list-style:none}}
+.nav-menu a {{color:#1e293b;text-decoration:none;font-weight:600;transition:color 0.3s}}
+.nav-menu a:hover {{color:var(--p)}}
+.hero {{min-height:90vh;background:linear-gradient(135deg,#f8fafc 0%,white 100%);display:flex;align-items:center;justify-content:center;padding:2rem;position:relative}}
+.hero::before {{content:'';position:absolute;width:800px;height:800px;background:radial-gradient(circle,var(--p)20,transparent 70%);border-radius:50%;top:-400px;right:-200px;animation:pulse 6s ease-in-out infinite}}
+@keyframes pulse {{0%,100%{{transform:scale(1);opacity:0.6}}50%{{transform:scale(1.15);opacity:0.8}}}}
+.hero-content {{max-width:900px;text-align:center;z-index:1}}
+.hero h1 {{font-size:clamp(2.5rem,6vw,4.5rem);font-weight:900;margin-bottom:1.5rem;background:linear-gradient(135deg,var(--p),var(--a));-webkit-background-clip:text;-webkit-text-fill-color:transparent}}
+.cta {{display:inline-block;padding:1.3rem 3.5rem;background:linear-gradient(135deg,var(--p),var(--a));color:white;text-decoration:none;border-radius:50px;font-size:1.15rem;font-weight:700;box-shadow:0 15px 40px rgba(0,0,0,0.15);transition:all 0.4s}}
+.cta:hover {{transform:translateY(-5px);box-shadow:0 20px 50px rgba(0,0,0,0.25)}}
+.section {{padding:6rem 2rem;max-width:1400px;margin:0 auto}}
+.section-title {{font-size:clamp(2rem,4vw,3rem);font-weight:800;text-align:center;margin-bottom:4rem;background:linear-gradient(135deg,var(--p),var(--s));-webkit-background-clip:text;-webkit-text-fill-color:transparent}}
+.grid {{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:2.5rem}}
+.card {{background:white;padding:3rem;border-radius:25px;box-shadow:0 15px 50px rgba(0,0,0,0.08);transition:all 0.4s;text-align:center}}
+.card:hover {{transform:translateY(-10px);box-shadow:0 25px 60px rgba(0,0,0,0.15)}}
+.footer {{background:#0f172a;color:white;padding:4rem 2rem 2rem}}
+@media(max-width:768px){{.nav-menu{{flex-direction:column;gap:1rem}}.grid{{grid-template-columns:1fr}}}}"""
+        
+        # Navigation
+        logo_html = f'<img src="{d["logo"]}" alt="Logo" style="height:50px">' if d['logo'] else f'<div class="logo">{d["company_name"]}</div>'
+        
+        nav = f"""<nav class="navbar">
+<div class="nav-container">
+{logo_html}
+<ul class="nav-menu">
+<li><a href="index.html">Home</a></li>
+{f'<li><a href="about.html">About</a></li>' if d['features']['about'] else ''}
+{f'<li><a href="services.html">Services</a></li>' if d['features']['services'] else ''}
+{f'<li><a href="portfolio.html">Portfolio</a></li>' if d['features']['portfolio'] else ''}
+{f'<li><a href="blog.html">Blog</a></li>' if d['features']['blog'] else ''}
+{f'<li><a href="contact.html">Contact</a></li>' if d['features']['contact'] else ''}
+</ul>
+</div>
+</nav>"""
+        
+        # Footer
+        footer = f"""<footer class="footer">
+<div style="max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:3rem">
+<div><h3>{d['company_name']}</h3><p>{d['description'][:100]}...</p></div>
+<div><h4>Contact</h4><p>📧 {d['email']}</p><p>📱 {d['phone']}</p><p>📍 {d['address']}</p></div>
+<div><h4>Follow Us</h4>
+{f'<a href="{d["social"]["facebook"]}" style="color:white;margin:0 10px">Facebook</a>' if d['social']['facebook'] else ''}
+{f'<a href="{d["social"]["twitter"]}" style="color:white;margin:0 10px">Twitter</a>' if d['social']['twitter'] else ''}
+{f'<a href="{d["social"]["linkedin"]}" style="color:white;margin:0 10px">LinkedIn</a>' if d['social']['linkedin'] else ''}
+</div>
+</div>
+<div style="text-align:center;margin-top:2rem;padding-top:2rem;border-top:1px solid #334155">
+<p>&copy; {datetime.now().year} {d['company_name']}. Built with VisionQuantech OS</p>
+</div>
+</footer>"""
+        
+        # Pages
+        pages = {}
+        
+        # INDEX
+        services_cards = '\n'.join([f'<div class="card"><h3>💼</h3><h3>{s}</h3><p>Professional {s.lower()} services</p></div>' for s in d['services'][:6]])
+        
+        pages['index.html'] = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{d['seo']['title'] or d['company_name']}</title>
+<meta name="description" content="{d['seo']['description'] or d['description']}">
+<meta name="keywords" content="{d['seo']['keywords']}">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>{css}</style>
+</head>
+<body>
+{nav}
+<section class="hero">
+<div class="hero-content">
+<h1>{d['company_name']}</h1>
+<p style="font-size:1.3rem;margin-bottom:2rem">{d['tagline']}</p>
+<p style="font-size:1.1rem;margin-bottom:2rem">{d['description']}</p>
+<a href="contact.html" class="cta">Get Started →</a>
+</div>
+</section>
+<section class="section">
+<h2 class="section-title">Our Services</h2>
+<div class="grid">{services_cards}</div>
+</section>
+{footer}
+</body>
+</html>"""
+        
+        # ABOUT
+        if d['features']['about']:
+            pages['about.html'] = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>About - {d['company_name']}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>{css}</style>
+</head>
+<body>
+{nav}
+<section class="hero" style="min-height:60vh">
+<div class="hero-content">
+<h1>About {d['company_name']}</h1>
+<p style="font-size:1.2rem">{d['description']}</p>
+</div>
+</section>
+<section class="section">
+<h2 class="section-title">Our Team</h2>
+<div class="grid">
+<div class="card"><div style="font-size:4rem">👨‍💼</div><h3>John Smith</h3><p>CEO & Founder</p></div>
+<div class="card"><div style="font-size:4rem">👩‍💻</div><h3>Sarah Johnson</h3><p>CTO</p></div>
+<div class="card"><div style="font-size:4rem">👨‍🎨</div><h3>Mike Davis</h3><p>Creative Director</p></div>
+</div>
+</section>
+{footer}
+</body>
+</html>"""
+        
+        # CONTACT
+        if d['features']['contact']:
+            pages['contact.html'] = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Contact - {d['company_name']}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>{css}
+.form-group{{margin-bottom:2rem}}
+.form-group label{{display:block;margin-bottom:0.8rem;font-weight:700}}
+.form-group input,.form-group textarea{{width:100%;padding:1.2rem;border:2px solid #e2e8f0;border-radius:15px;font-size:1.05rem;font-family:inherit}}
+.form-group input:focus,.form-group textarea:focus{{outline:none;border-color:var(--p);box-shadow:0 0 0 4px var(--p)15}}
+.submit-btn{{width:100%;padding:1.4rem;background:linear-gradient(135deg,var(--p),var(--a));color:white;border:none;border-radius:15px;font-size:1.2rem;font-weight:700;cursor:pointer}}
+</style>
+</head>
+<body>
+{nav}
+<section class="hero" style="min-height:50vh">
+<div class="hero-content">
+<h1>Get In Touch</h1>
+<p style="font-size:1.2rem">We'd love to hear from you</p>
+</div>
+</section>
+<section style="padding:6rem 2rem;background:linear-gradient(135deg,var(--p)08,var(--a)15)">
+<div style="max-width:700px;margin:0 auto;background:white;padding:4rem;border-radius:30px;box-shadow:0 25px 70px rgba(0,0,0,0.12)">
+<h2 style="text-align:center;margin-bottom:2rem">Send Message</h2>
+<form action="{FORMSPREE_ENDPOINT}" method="POST">
+<div class="form-group">
+<label>Name *</label>
+<input type="text" name="name" required>
+</div>
+<div class="form-group">
+<label>Email *</label>
+<input type="email" name="email" required>
+</div>
+<div class="form-group">
+<label>Message *</label>
+<textarea name="message" rows="6" required></textarea>
+</div>
+<button type="submit" class="submit-btn">Send →</button>
+</form>
+<div style="margin-top:3rem;padding-top:2rem;border-top:2px solid #e2e8f0">
+<h3>Contact Info</h3>
+<p>📧 {d['email']}</p>
+<p>📱 {d['phone']}</p>
+<p>📍 {d['address']}</p>
+</div>
+</div>
+</section>
+{footer}
+</body>
+</html>"""
+        
+        return pages
+    
+    # ==================== ACTIONS ====================
+    
+    def edit(self):
+        """Edit content"""
+        if not hasattr(self, 'pages'):
+            messagebox.showwarning("Warning", "Generate website first!")
+            return
+        
+        editor = tk.Toplevel(self.root)
+        editor.title("Content Editor")
+        editor.geometry("1000x750")
+        editor.configure(bg="#1a1a2e")
+        
+        tk.Label(editor, text="📝 Editor", font=("Arial", 20, "bold"),
+                fg="#00d4ff", bg="#1a1a2e").pack(pady=20)
+        
+        notebook = ttk.Notebook(editor)
+        notebook.pack(fill='both', expand=True, padx=20, pady=(0, 20))
+        
+        self.editors = {}
+        for fn, content in self.pages.items():
+            frame = tk.Frame(notebook)
+            notebook.add(frame, text=fn)
+            
+            text = scrolledtext.ScrolledText(frame, font=("Consolas", 10),
+                                            bg="#0f1419", fg="#fff", wrap=tk.WORD)
+            text.pack(fill='both', expand=True, padx=10, pady=10)
+            text.insert(1.0, content)
+            self.editors[fn] = text
+        
+        btn_fr = tk.Frame(editor, bg="#1a1a2e")
+        btn_fr.pack(fill='x', padx=20, pady=(0, 20))
+        
+        def save():
+            for fn, widget in self.editors.items():
+                self.pages[fn] = widget.get(1.0, tk.END)
+            messagebox.showinfo("Saved", "✅ Saved!")
+            self.status.config(text="✅ Content updated")
+        
+        tk.Button(btn_fr, text="💾 Save", command=save, bg="#10b981",
+                 fg="white", font=("Arial", 11, "bold"), padx=30, pady=10, bd=0).pack(side='left', padx=5)
+        tk.Button(btn_fr, text="❌ Close", command=editor.destroy, bg="#64748b",
+                 fg="white", font=("Arial", 11, "bold"), padx=30, pady=10, bd=0).pack(side='right')
+    
+    def export(self):
+        """Export ZIP"""
+        if not hasattr(self, 'pages'):
+            messagebox.showwarning("Warning", "Generate first!")
+            return
+        
+        path = filedialog.asksaveasfilename(
+            defaultextension=".zip",
+            filetypes=[("ZIP", "*.zip")],
+            initialfile=f"{self.company_name.get().replace(' ', '_')}_website.zip"
+        )
+        
+        if path:
+            try:
+                with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as z:
+                    for fn, content in self.pages.items():
+                        z.writestr(fn, content)
+                    z.writestr("README.txt", f"VisionQuantech OS Website\nGenerated: {datetime.now()}")
+                
+                messagebox.showinfo("Success", f"✅ Exported!\n\n{path}")
+                self.status.config(text=f"✅ Exported")
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
+    
+    def preview_web(self):
+        """Preview in browser"""
+        if not hasattr(self, 'pages'):
+            messagebox.showwarning("Warning", "Generate first!")
+            return
+        
+        temp = Path("temp_preview")
+        temp.mkdir(exist_ok=True)
+        
+        for fn, content in self.pages.items():
+            (temp / fn).write_text(content, encoding='utf-8')
+        
+        def run():
+            os.chdir(temp)
+            with socketserver.TCPServer(("", 8000), http.server.SimpleHTTPRequestHandler) as httpd:
+                httpd.serve_forever()
+        
+        threading.Thread(target=run, daemon=True).start()
+        webbrowser.open('http://localhost:8000')
+        self.status.config(text="✅ Server: localhost:8000")
+        messagebox.showinfo("Server", "🌐 Running at http://localhost:8000")
+    
+    def deploy(self):
+        """Deploy options"""
+        if not hasattr(self, 'pages'):
+            messagebox.showwarning("Warning", "Generate first!")
+            return
+        
+        deploy = tk.Toplevel(self.root)
+        deploy.title("Deploy Online")
+        deploy.geometry("700x650")
+        deploy.configure(bg="#1a1a2e")
+        
+        tk.Label(deploy, text="☁️ Deploy", font=("Arial", 24, "bold"),
+                fg="#00d4ff", bg="#1a1a2e").pack(pady=30)
+        
+        frame = tk.Frame(deploy, bg="#252540")
+        frame.pack(fill='both', expand=True, padx=40, pady=(0, 20))
+        
+        options = [
+            ("🌐 Netlify", "Drag & drop", "https://app.netlify.com/drop"),
+            ("⚡ Vercel", "Fast deploy", "https://vercel.com/new"),
+            ("🐙 GitHub Pages", "Free hosting", "https://pages.github.com"),
+            ("🔥 Firebase", "Google hosting", "https://firebase.google.com/docs/hosting")
+        ]
+        
+        for title, desc, url in options:
+            card = tk.Frame(frame, bg="#1a1a2e")
+            card.pack(fill='x', padx=20, pady=10)
+            
+            tk.Label(card, text=title, font=("Arial", 12, "bold"),
+                    fg="#00d4ff", bg="#1a1a2e").pack(fill='x', padx=15, pady=(10, 5))
+            tk.Label(card, text=desc, font=("Arial", 10),
+                    fg="#94a3b8", bg="#1a1a2e").pack(fill='x', padx=15)
+            tk.Button(card, text="Open", command=lambda u=url: webbrowser.open(u),
+                     bg="#8b5cf6", fg="white", font=("Arial", 9, "bold"),
+                     padx=20, pady=8, bd=0).pack(anchor='w', padx=15, pady=(5, 10))
+        
+        def quick_export():
+            desktop = Path.home() / "Desktop"
+            fn = f"{self.company_name.get().replace(' ', '_')}_deploy.zip"
+            path = desktop / fn
+            
+            try:
+                with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as z:
+                    for f, c in self.pages.items():
+                        z.writestr(f, c)
+                
+                messagebox.showinfo("Exported", f"✅ Desktop!\n\n{fn}")
+                self.status.config(text="✅ Ready for deployment")
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
+        
+        tk.Button(deploy, text="📦 Export to Desktop", command=quick_export,
+                 bg="#10b981", fg="white", font=("Arial", 12, "bold"),
+                 padx=30, pady=12, bd=0).pack(pady=20)
+    
+    # ==================== PROJECT MANAGEMENT ====================
+    
+    def save_project(self):
+        """Save project"""
+        if not hasattr(self, 'pages'):
+            messagebox.showwarning("Warning", "Generate first!")
+            return
+        
+        try:
+            projects = []
+            if os.path.exists(self.projects_file):
+                with open(self.projects_file, 'r') as f:
+                    projects = json.load(f)
+            
+            projects.append({
+                'data': self.current_project,
+                'pages': self.pages,
+                'saved': datetime.now().isoformat()
+            })
+            
+            with open(self.projects_file, 'w') as f:
+                json.dump(projects, f)
+            
+            messagebox.showinfo("Saved", "✅ Project saved!")
+            self.status.config(text="✅ Project saved")
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+    
+    def load_project(self):
+        """Load project"""
+        if not os.path.exists(self.projects_file):
+            messagebox.showinfo("No Projects", "No saved projects")
+            return
+        
+        try:
+            with open(self.projects_file, 'r') as f:
+                projects = json.load(f)
+            
+            if not projects:
+                messagebox.showinfo("No Projects", "No saved projects")
+                return
+            
+            project = projects[-1]
+            data = project['data']
+            
+            self.company_name.delete(0, tk.END)
+            self.company_name.insert(0, data['company_name'])
+            self.tagline.delete(0, tk.END)
+            self.tagline.insert(0, data['tagline'])
+            self.description.delete(1.0, tk.END)
+            self.description.insert(1.0, data['description'])
+            self.email.delete(0, tk.END)
+            self.email.insert(0, data['email'])
+            
+            self.pages = project['pages']
+            self.current_project = data
+            
+            messagebox.showinfo("Loaded", "✅ Project loaded!")
+            self.status.config(text="✅ Project loaded")
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+
+    def serve(self):
+        """Local server"""
+        if not hasattr(self, 'pages'):
+            messagebox.showwarning("Warning", "Generate first!")
+            return
+        
+        temp = Path("temp_preview")
+        temp.mkdir(exist_ok=True)
+        
+        for fn, content in self.pages.items():
+            (temp / fn).write_text(content, encoding='utf-8')
+
+        def run():
+            os.chdir(temp)
+            with socketserver.TCPServer(("", 8000), http.server.SimpleHTTPRequestHandler) as httpd:
+                httpd.serve_forever()
+
+        threading.Thread(target=run, daemon=True).start()
+        webbrowser.open('http://localhost:8000')
+        self.status.config(text="✅ Server: localhost:8000")
+        messagebox.showinfo("Server", "🌐 Running at http://localhost:8000")
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = VisionQuantechOS(root)
+    root.mainloop()
