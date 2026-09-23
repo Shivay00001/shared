@@ -2,10 +2,19 @@
 Centralized logging configuration
 """
 import logging
+import os
 import sys
-from app.core.config import settings
 
-def setup_logging() -> logging.Logger:
+
+def _default_log_level() -> str:
+    """Log level from LOG_LEVEL env var, validated, defaulting to INFO."""
+    level = os.getenv("LOG_LEVEL", "INFO").upper()
+    if level not in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
+        level = "INFO"
+    return level
+
+
+def setup_logging(level: str = None) -> logging.Logger:
     """
     Configure application logging
     Returns the root logger
@@ -19,7 +28,7 @@ def setup_logging() -> logging.Logger:
     
     # Configure root logger
     root_logger = logging.getLogger()
-    root_logger.setLevel(getattr(logging, settings.LOG_LEVEL))
+    root_logger.setLevel(getattr(logging, level or _default_log_level(), logging.INFO))
     
     # Remove existing handlers
     for handler in root_logger.handlers[:]:

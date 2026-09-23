@@ -5,15 +5,27 @@ FastAPI service for dashboard and governance interface
 
 import os
 import json
+import logging
 import sqlite3
 from typing import List, Optional, Dict
 from datetime import datetime
 
-from fastapi import FastAPI, HTTPException, Depends, Query
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from web3 import Web3
-import redis
+try:
+    from fastapi import FastAPI, HTTPException, Depends, Query
+    from fastapi.middleware.cors import CORSMiddleware
+    from pydantic import BaseModel
+except ImportError as exc:
+    raise RuntimeError(
+        "The 'fastapi' package is required by backend.api_backend but is not installed. "
+        "Install it with: pip install fastapi"
+    ) from exc
+
+# NOTE: `web3` and `redis` are intentionally NOT imported at module level.
+# They are optional heavy dependencies imported lazily inside get_web3() /
+# get_redis() so that importing this module (and running the parts of the API
+# that do not need them) never fails just because they are not installed.
+
+logger = logging.getLogger("youdao.api")
 
 
 app = FastAPI(title="YOU.DAO API", version="1.0.0")
@@ -100,14 +112,28 @@ def get_db():
 
 
 def get_web3():
-    """Web3 dependency"""
+    """Web3 dependency (``web3`` is imported lazily so the module stays importable without it)."""
+    try:
+        from web3 import Web3
+    except ImportError as exc:
+        raise RuntimeError(
+            "The 'web3' package is required for Ethereum features but is not installed. "
+            "Install it with: pip install web3"
+        ) from exc
     rpc_url = os.getenv('ETH_RPC_URL', 'http://localhost:8545')
     w3 = Web3(Web3.HTTPProvider(rpc_url))
     return w3
 
 
 def get_redis():
-    """Redis dependency"""
+    """Redis dependency (``redis`` is imported lazily so the module stays importable without it)."""
+    try:
+        import redis
+    except ImportError as exc:
+        raise RuntimeError(
+            "The 'redis' package is required for Redis features but is not installed. "
+            "Install it with: pip install redis"
+        ) from exc
     r = redis.Redis(
         host=os.getenv('REDIS_HOST', 'localhost'),
         port=int(os.getenv('REDIS_PORT', 6379)),
@@ -117,13 +143,26 @@ def get_redis():
     return r
 
 
-def get_dao_contract(w3: Web3):
+def get_dao_contract(w3):
     """Get DAO contract instance"""
     dao_address = os.getenv('YOU_DAO_ADDRESS')
-    
-    with open('abis/YOUDAO.json', 'r') as f:
+    if not dao_address:
+        raise RuntimeError(
+            "YOU_DAO_ADDRESS environment variable is not set; "
+            "set it to the deployed YOU.DAO contract address to use on-chain features."
+        )
+
+    abi_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'abis', 'YOUDAO.json')
+    if not os.path.exists(abi_path):
+        raise RuntimeError(
+            f"DAO contract ABI not found at {abi_path}. "
+            "Place the compiled YOUDAO.json ABI there to use on-chain features."
+        )
+
+    with open(abi_path, 'r') as f:
         dao_abi = json.load(f)
-    
+
+    from web3 import Web3
     return w3.eth.contract(
         address=Web3.to_checksum_address(dao_address),
         abi=dao_abi
@@ -495,6 +534,73 @@ async def get_revenue_projections():
     }
 
 
+def _server_config():
+    """Read and validate HOST/PORT from the environment.
+
+    Raises:
+        ValueError: with a helpful message when the values are invalid.
+    """
+    host = os.getenv("HOST", "0.0.0.0")
+    if not host:
+        raise ValueError("HOST is set but empty; set it to a hostname/IP or unset it.")
+
+    port_raw = os.getenv("PORT", "8000")
+    try:
+        port = int(port_raw)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"PORT must be an integer, got {port_raw!r}. "
+            "Set a valid port, e.g. PORT=8000."
+        ) from None
+    if not 1 <= port <= 65535:
+        raise ValueError(f"PORT must be between 1 and 65535, got {port}.")
+    return host, port
+
+
+def serve(host: Optional[str] = None, port: Optional[int] = None) -> None:
+    """Start the YOU.DAO API server.
+
+    Args:
+        host: Bind address. Defaults to the ``HOST`` env var (``0.0.0.0``).
+        port: Bind port. Defaults to the ``PORT`` env var (``8000``).
+
+    External services (Ethereum node, Redis, Postgres) are all optional for
+    startup: the API boots on SQLite and reports unavailable dependencies as
+    ``false`` on ``/api/health`` instead of crashing.
+    """
+    try:
+        import uvicorn
+    except ImportError as exc:
+        raise RuntimeError(
+            "The 'uvicorn' package is required to run the server but is not installed. "
+            'Install it with: pip install "uvicorn[standard]"'
+        ) from exc
+
+    if host is None or port is None:
+        env_host, env_port = _server_config()
+        host = host if host is not None else env_host
+        port = port if port is not None else env_port
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+    logger.info("Starting YOU.DAO API on http://%s:%d ...", host, port)
+    logger.info(
+        "Docs: http://%s:%d/docs | Health: http://%s:%d/api/health",
+        host, port, host, port,
+    )
+    try:
+        uvicorn.run(app, host=host, port=port, log_level="info")
+    except KeyboardInterrupt:
+        logger.info("Shutdown requested (KeyboardInterrupt); server stopped cleanly.")
+    except OSError as exc:
+        raise RuntimeError(
+            f"Could not start server on {host}:{port}: {exc}. "
+            "Is another process already using that port? "
+            "Try a different one, e.g. PORT=8001."
+        ) from exc
+
+
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    serve()
