@@ -1,50 +1,18 @@
-# Shared
+# Shared — VisionQuantech OS Website Builder
 
-An enterprise-grade solution engineered for high performance.
+Two parts:
 
-![Language](https://img.shields.io/badge/Language-Python-blue)
-![Status](https://img.shields.io/badge/Status-Active-success)
-![License](https://img.shields.io/badge/License-MIT-green)
-
-## 🚀 Overview
-
-Welcome to the **Shared** repository. This project is built to deliver a robust and scalable solution tailored to modern development standards.
-
-## ✨ Features
-
-- **High Performance:** Optimized for speed and efficiency.
-- **Scalable Architecture:** Designed to grow with your needs.
-- **Clean Codebase:** Follows best practices and industry standards.
-- **Secure by Default:** Engineered with security in mind.
-
-## 🛠️ Prerequisites
-
-Ensure you have the following installed in your environment before proceeding:
-- Appropriate runtime/compiler for `Python`
-- Standard development tools
-
-## 📦 Installation
-
-Follow standard installation steps for `Python` to set up the project locally:
-
-1. Clone the repository:
+1. **Desktop GUI app (tkinter)** — `visionquantech_complete.py`: an AI website-builder style desktop app (edits, previews, and exports sites).
    ```bash
-   git clone https://github.com/Shivay00001/shared.git
+   python visionquantech_complete.py
    ```
-2. Navigate to the project directory:
+2. **FastAPI fragment** — `backend/api_backend.py`: a standalone YOU.DAO API with 14 routes (health, decisions, proposals, licenses, metrics). Not wired to the tkinter app; load it on its own:
    ```bash
-   cd shared
+   pip install fastapi uvicorn
+   uvicorn backend.api_backend:app --reload
    ```
-3. Install dependencies according to the standard `Python` ecosystem.
+   (Also contains unrelated frontend TypeScript sources and a blockchain sketch.)
 
-## 💻 Usage
+Requires Python 3.10+ with tkinter for the desktop part. Verified 2026-09-24 on Python 3.12 (Linux, xvfb): tkinter window initializes with no errors; FastAPI app imports cleanly with 14 routes.
 
-Run the project using standard execution commands for `Python`. Ensure all environment variables and configurations are set prior to execution.
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome! Feel free to check the issues page.
-
-## 📝 License
-
-This project is licensed under standard terms.
+The desktop app is not cloud-deployable; the FastAPI fragment is deployable as an API service if wired to a real data source.
