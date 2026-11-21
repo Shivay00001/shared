@@ -1,5 +1,7 @@
 # Shared — VisionQuantech OS Website Builder
 
+Built by [VisionQuantech](https://visionquantech.com) — AI agents, apps & tools for small businesses.
+
 Two parts:
 
 1. **Desktop GUI app (tkinter)** — `visionquantech_complete.py`: an AI website-builder style desktop app (edits, previews, and exports sites).
